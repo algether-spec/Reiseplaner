@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v0.1.0";
+const CACHE_VERSION = "v0.1.1-dev";
 const CACHE_NAME = "reiseplaner-" + CACHE_VERSION;
 
 // Separater Cache ohne Versionsnummer – überlebt SW-Updates.
