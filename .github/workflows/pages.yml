@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+# Deployt main unter: https://algether-spec.github.io/Erinnerungen/
+#
+# Nutzt JamesIves/github-pages-deploy-action statt actions/deploy-pages,
+# damit das preview/-Verzeichnis (Feature-Branch-Deployments) erhalten bleibt.
+#
+# GitHub Pages Quelle (einmalig setzen):
+#   Settings → Pages → Source: "Deploy from a branch" → Branch: gh-pages / root
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deployment-Ordner vorbereiten
+        run: |
+          mkdir _deploy
+          rsync -a \
+            --exclude='.git' \
+            --exclude='_deploy' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            . _deploy/
+          if [ -n "$SUPABASE_URL" ]; then
+            sed -i "s|supabaseUrl: \"[^\"]*\"|supabaseUrl: \"$SUPABASE_URL\"|" _deploy/config.js
+          fi
+          if [ -n "$SUPABASE_ANON_KEY" ]; then
+            sed -i "s|supabaseAnonKey: \"[^\"]*\"|supabaseAnonKey: \"$SUPABASE_ANON_KEY\"|" _deploy/config.js
+          fi
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Auf gh-pages Branch deployen
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: _deploy
+          single-commit: true
+          clean: true
+          clean-exclude: |
+            preview/
+          commit-message: "deploy: main @ ${{ github.sha }}"

@@ -1,0 +1,34 @@
+name: Deploy dev to /dev subfolder
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-branch
+
+      - name: Copy dev files to main/dev subfolder
+        run: |
+          mkdir -p main-branch/dev
+          rsync -av --exclude='.git' --exclude='.github' --exclude='main-branch' . main-branch/dev/
+
+      - name: Commit and push to main
+        run: |
+          cd main-branch
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add dev/
+          git diff --staged --quiet || git commit -m "deploy: sync dev → /dev subfolder"
+          git push origin main
