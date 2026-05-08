@@ -1,6 +1,6 @@
 {
   "name": "Reiseplaner",
-  "short_name": "Reise",
+  "short_name": "Reiseplaner",
   "description": "Reisen planen und organisieren",
   "start_url": "./",
   "scope": "./",
