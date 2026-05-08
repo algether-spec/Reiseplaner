@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Reiseplaner</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a6b5a">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: blob:; style-src 'self'; worker-src 'self'">
+    <meta
+        http-equiv="Permissions-Policy"
+        content="camera=(self), microphone=(self), geolocation=()">
+
+    <!-- PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css?v=1.0.35">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json?v=1.0.35">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png">
+</head>
+
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+    <div class="splash-cart" aria-label="Reiseplaner">✈️</div>
+    <div class="splash-title">Reiseplaner</div>
+    <div class="splash-sub">powered by Al.Gether</div>
+</div>
+
+<div class="app">
+
+    <header>
+        <span class="header-title">Reiseplaner</span>
+        <button type="button" id="btn-help" class="help-button" title="Hilfe">❓</button>
+    </header>
+
+    <div class="sync-code-compact" id="sync-code-compact">
+        <div class="sync-code-row">
+            <span class="sync-code-label">Code:</span>
+            <button type="button" id="btn-sync-code-display" class="sync-code-display">...</button>
+            <button type="button" id="btn-sync-code-share" class="sync-code-share" hidden>Teilen</button>
+            <button type="button" id="btn-sync-connect" class="sync-code-edit" hidden>Verbinden</button>
+            <button type="button" id="btn-sync-code-change" class="sync-code-change" hidden>Sy-Code</button>
+            <button type="button" id="btn-force-update" class="update-button">Update</button>
+        </div>
+    </div>
+
+    <div class="auth-bar" id="auth-bar" hidden>
+        <input
+            type="text"
+            id="sync-code"
+            class="auth-email"
+            maxlength="8"
+            pattern="[A-Za-z]{4}[0-9]{4}"
+            autocapitalize="characters"
+            placeholder="Geraete-Code (z. B. AAAA0000)">
+        <button type="button" id="btn-sync-apply" class="auth-button">Verbinden</button>
+        <button type="button" id="btn-sync-cancel" class="auth-button auth-cancel">Abbrechen</button>
+        <div id="auth-status" class="auth-status"></div>
+    </div>
+
+    <main>
+
+        <!-- MEHRZEILEN-EINGABE -->
+        <div class="input-section">
+            <textarea
+                id="multi-line-input"
+                placeholder="Jede Zeile = eine Erinnerung"
+                rows="1"></textarea>
+
+            <div class="input-actions">
+                <button type="button"
+                        id="mic-button"
+                        class="mic-button"
+                        aria-pressed="false">🎤</button>
+
+                <button type="button"
+                        id="add-all-button"
+                        class="add-button">Übernehmen</button>
+
+                <button type="button"
+                        id="btn-clear-input"
+                        class="clear-input-button">Löschen</button>
+
+                <button type="button"
+                        id="btn-photo-ocr"
+                        class="photo-button"
+                        title="Foto aufnehmen">📷<span class="photo-btn-label">Foto</span></button>
+
+                <button type="button"
+                        id="btnExport"
+                        class="export-button"
+                        title="Exportieren">📤</button>
+            </div>
+
+            <input
+                type="file"
+                id="photo-ocr-input"
+                accept="image/*"
+                capture="environment"
+                hidden>
+
+            <div id="input-error-status" class="input-error-status" aria-live="polite"></div>
+
+            <div id="mic-status" class="mic-status" aria-live="polite"></div>
+
+            <div id="photo-caption-area" class="photo-caption-area" hidden>
+                <img id="photo-caption-preview" class="photo-caption-preview" alt="Vorschau">
+                <textarea
+                    id="photo-caption-text"
+                    class="photo-caption-text"
+                    placeholder="Beschreibung zum Foto (optional)"
+                    rows="2"></textarea>
+                <div class="photo-caption-actions">
+                    <button type="button" id="btn-photo-caption-cancel" class="photo-caption-cancel">Abbrechen</button>
+                    <button type="button" id="btn-photo-caption-save" class="photo-caption-save">Foto speichern</button>
+                </div>
+            </div>
+        </div>
+
+        <ul id="liste"></ul>
+
+    </main>
+
+    <div id="image-viewer" class="image-viewer" hidden>
+        <button type="button" id="btn-image-viewer-close" class="image-viewer-close">Schließen</button>
+        <img id="image-viewer-img" class="image-viewer-img" alt="Fotoeintrag">
+    </div>
+
+    <div id="help-viewer" class="help-viewer" hidden>
+        <div class="help-card">
+            <button type="button" id="btn-help-viewer-close" class="help-close">Schließen</button>
+            <h2>Kurzanleitung</h2>
+            <div class="help-section">
+                <div class="help-section-title">🔄 Installation &amp; Teilen</div>
+                <ul class="help-list">
+                    <li>Das erste Gerät wird automatisch <strong>Hauptgerät</strong></li>
+                    <li>Hauptgerät: auf <strong>🔗 Teilen</strong> tippen → Link erzeugen &amp; ans andere Gerät senden</li>
+                    <li>Gastgerät: Link öffnen → automatisch beigetreten, kein Code nötig</li>
+                    <li>Immer zu Homebildschirm hinzufügen – danach ist es eine WebApp</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <div class="help-section-title">🎤 Mikrofon</div>
+                <ul class="help-list">
+                    <li>Auf <strong>🎤</strong> tippen, um Spracherkennung zu starten (beim ersten Mal zulassen)</li>
+                    <li>Text im Eingabefeld prüfen</li>
+                    <li>Mit <strong>✅ Übernehmen</strong> zur Liste hinzufügen</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <div class="help-section-title">📱 Buttons</div>
+                <ul class="help-list">
+                    <li><strong>🗑️ Löschen</strong> – Eingabefeld leeren</li>
+                    <li><strong>✅ Übernehmen</strong> – Erinnerung zur Liste hinzufügen</li>
+                    <li><strong>📷 Foto</strong> – Foto aufnehmen, Text dazu fügen möglich</li>
+                    <li><strong>📤 Export</strong> – Liste als Text in die Zwischenablage kopieren</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <div class="help-section-title">🧠 Erfassen &amp; Erledigt</div>
+                <ul class="help-list">
+                    <li><strong>Erfassen</strong> – Erinnerungen eingeben und zur Liste hinzufügen</li>
+                    <li><strong>Erledigt</strong> – Einträge antippen um sie abzuhaken</li>
+                    <li>Abgehakte Einträge werden beim Wechsel auf Erfassen gelöscht</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="export-modal" class="export-modal" hidden>
+        <div class="export-card">
+            <button type="button" id="btn-export-modal-close" class="export-modal-close">Schließen</button>
+            <h2>Exportieren</h2>
+
+            <div class="export-section">
+                <div class="export-section-title">Was exportieren?</div>
+                <label class="export-radio-label"><input type="radio" name="export-filter" value="all" checked> Alle Einträge</label>
+                <label class="export-radio-label"><input type="radio" name="export-filter" value="open"> Nur offene Einträge</label>
+                <label class="export-radio-label"><input type="radio" name="export-filter" value="done"> Nur erledigte Einträge</label>
+            </div>
+
+            <div class="export-section">
+                <div class="export-section-title">Einzelne Einträge auswählen</div>
+                <div class="export-select-actions">
+                    <button type="button" id="btn-export-select-all" class="export-select-btn">Alle ✓</button>
+                    <button type="button" id="btn-export-deselect-all" class="export-select-btn">Alle ✗</button>
+                </div>
+                <ul id="export-entry-list" class="export-entry-list"></ul>
+            </div>
+
+            <div class="export-section">
+                <div class="export-section-title">Was beinhalten?</div>
+                <label class="export-check-label"><input type="checkbox" id="export-inc-entry-date" checked> Erfassungsdatum</label>
+                <label class="export-check-label"><input type="checkbox" id="export-inc-due-date" checked> Fälligkeitsdatum</label>
+                <label class="export-check-label"><input type="checkbox" id="export-inc-photo-note" checked> Text zu Fotos</label>
+            </div>
+
+            <div class="export-footer">
+                <button type="button" id="btn-export-html" class="export-html-btn">📄 HTML exportieren</button>
+                <button type="button" id="btn-export-mail" class="export-mail-btn">📧 Per Mail senden</button>
+                <button type="button" id="btn-export-cancel" class="export-cancel-btn">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="version-row">
+        <div class="version-badge" id="version-badge">v1.0.44</div>
+    </div>
+    <div class="version-subline">von Al.Gether</div>
+    <div class="sync-status" id="sync-status">Sync: Lokal</div>
+    <div class="sync-debug" id="sync-debug" hidden></div>
+
+    <nav>
+        <button type="button" id="btnErfassen" class="active">
+            Erfassen
+        </button>
+
+        <button type="button" id="btnErledigt">
+            Erledigt
+        </button>
+    </nav>
+
+</div>
+
+<script src="config.js?v=1.0.35"></script>
+<script src="utils.js?v=1.0.35"></script>
+<script src="supabase-lib.js"></script>
+<script src="supabase.js?v=1.0.35"></script>
+<script src="sync.js?v=1.0.35"></script>
+<script src="ui.js?v=1.0.35"></script>
+<script src="app.js?v=1.0.35"></script>
+
+</body>
+</html>
