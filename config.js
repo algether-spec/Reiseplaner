@@ -9,7 +9,7 @@ const APP_CONFIG = window.APP_CONFIG || {};
    KONSTANTEN
 ====================== */
 
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.1.3-dev";
 const STORAGE_KEY = "reiseplaner";
 const SUPABASE_TABLE = "reminder_items";
 const SYNC_CODE_KEY = "reiseplaner-sync-code";
