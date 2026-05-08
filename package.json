@@ -1,0 +1,11 @@
+{
+  "name": "reiseplaner",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Reisen planen und organisieren als Progressive Web App",
+  "scripts": {
+    "check:syntax": "node --check app.js && node --check service-worker.js",
+    "check:smoke": "node scripts/smoke.mjs",
+    "check": "npm run check:syntax && npm run check:smoke"
+  }
+}
